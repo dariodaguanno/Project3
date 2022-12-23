@@ -1,0 +1,101 @@
+//
+// Created by dario on 11/4/2022.
+//
+
+//first off there is no input from the user
+//we will need a function for the two producers: producer type 1 and producer type 2
+//these producers are child processes(so create two child processes) and
+//will execute in a loop every 0.01 - 0.2 seconds(random seconds):
+//call random seconds with clock_gettime() and use nanoseconds. possibly with srand
+//produce "something" and assign "product type number"
+//increment "product production count"
+//send type number and count to a pipe
+//you can only send text through a pipe
+//create a process called the distributor(main) at the other end of the pipe
+//distributor uses put() to send info to 2 queues
+//two queues: q1 and q2 (Should create these buffers before the distributor since it will get/put from
+//q1 and q2
+//q1 creates two threads for a type 1 product and q2 creates two threads for the type 2 products
+//the 4 threads use get to take the info from the queues and write to a file
+//all that the threads do is write to a fileS
+//all four threads write to one file
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <sys/wait.h>
+
+#define MAXBUFF 4096
+
+struct proInfo{
+    int count;
+    int type;
+};
+
+
+void produce();
+
+//main will be the distributor
+int main(int argc, char *argv[]){
+
+
+
+}
+
+void produce(){
+    int status = 0;
+    //child pids
+    pid_t pid2;
+    pid_t pid;
+    pid_t w;
+    //call pipe then fork
+    //fd[0] will be for the read end of the pipe
+    //fd[1] will be for the write end of the pipe
+    int fd[2];
+    int c = pipe(fd);
+    if(c == 0) {
+        pid = fork();
+        if (pid == -1) {
+            printf("Error could not create child 1\n");
+            exit(0);
+        } else if (pid == 0) {//child 1
+            int count = 1;
+            printf("I am process type 1\n");
+            close(fd[0]);
+            //store the two values as text, send across the pipe. Will then scan the buffer for these
+            //values later on
+
+            count++;
+            exit(0);
+        } else {
+            pid2 = fork();
+            if (pid2 == -1) {
+                printf("Could not create child 2\n");
+            } else if (pid2 == 0) {//child 2
+                int count2 = 1;
+                printf("I am process type 2\n");
+                close(fd[0]);
+
+
+                count2++;
+                exit(0);
+            } else {//parent
+                close(fd[1]);
+                while ((w = wait(&status)) > 0);//parent waits for both children to finish
+                printf("I am the parent\n");
+            }
+        }
+    }
+    else{
+        printf("Failed to create pipe\n");
+        exit(0);
+    }
+}
